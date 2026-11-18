@@ -1,4 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { UserRound } from 'lucide-react'
+import { fetchProducts } from './services/products.js'
+import AdminPortal from './components/admin/AdminPortal.jsx'
+import CartDrawer from './components/CartDrawer.jsx'
+import { addCartItem, getCustomerToken, loadCart } from './services/storeApi.js'
+import CustomerAccount from './components/CustomerAccount.jsx'
 import './App.css'
 
 const products = [
@@ -17,8 +23,8 @@ const products = [
 ]
 
 const sections = [
-  { id: 'mais-vendidos', title: 'Os queridinhos da vez', eyebrow: 'SUCESSO DE VENDAS', subtitle: 'Os pares que todo mundo está usando.', select: (p) => [1, 3, 5, 8, 10, 11].includes(p.id) },
-  { id: 'lancamentos', title: 'Novos no pedaço', eyebrow: 'ACABARAM DE CHEGAR', subtitle: 'Novidades para dar um passo à frente.', select: (p) => [2, 4, 9, 11, 12, 7].includes(p.id) },
+  { id: 'mais-vendidos', title: 'Os queridinhos da vez', eyebrow: 'SUCESSO DE VENDAS', subtitle: 'Os pares que todo mundo está usando.', select: (p) => p.featured || [1, 3, 5, 8, 10, 11].includes(p.id) },
+  { id: 'lancamentos', title: 'Novos no pedaço', eyebrow: 'ACABARAM DE CHEGAR', subtitle: 'Novidades para dar um passo à frente.', select: (p) => p.isNew || p.badge === 'LANÇAMENTO' || [2, 4, 9, 11, 12, 7].includes(p.id) },
   { id: 'ofertas', title: 'Seu próximo par, com desconto', eyebrow: 'OPORTUNIDADE BOA', subtitle: 'Preços especiais por tempo limitado.', select: (p) => p.oldPrice },
   { id: 'masculinos', title: 'Feitos para ir mais longe', eyebrow: 'MASCULINO', subtitle: 'Conforto e atitude em cada passo.', select: (p) => p.category === 'Masculino' },
   { id: 'femininos', title: 'Seu ritmo, suas regras', eyebrow: 'FEMININO', subtitle: 'Modelos para acompanhar cada versão sua.', select: (p) => p.category === 'Feminino' },
@@ -27,10 +33,12 @@ const sections = [
 const money = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 function ProductCard({ product, onAdd, added }) {
+  const [variantId, setVariantId] = useState(product.variants?.find((variant) => variant.stock > 0)?.id ?? '')
+  const variantsInStock = product.variants?.filter((variant) => variant.stock > 0) ?? []
   return (
     <article className="product-card">
-      <div className={`product-image ${product.color}`}>
-        <img src={`https://images.unsplash.com/${product.image}?auto=format&fit=crop&w=720&q=85`} alt={`${product.name} da ${product.brand}`} loading="lazy" />
+    <div className={`product-image ${product.color}`}>
+        <img src={product.image?.startsWith('http') ? product.image : `https://images.unsplash.com/${product.image}?auto=format&fit=crop&w=720&q=85`} alt={`${product.name} da ${product.brand}`} loading="lazy" />
         {product.badge && <span className="badge">{product.badge}</span>}
         <button className="favorite" aria-label={`Favoritar ${product.name}`} aria-pressed={product.favorite} onClick={() => product.onFavorite(product.id)}>{product.favorite ? '♥' : '♡'}</button>
       </div>
@@ -39,30 +47,44 @@ function ProductCard({ product, onAdd, added }) {
         <h3>{product.name}</h3>
         <p className="category-label">Tênis · {product.category}</p>
         <div className="price-row"><strong>{money(product.price)}</strong>{product.oldPrice && <del>{money(product.oldPrice)}</del>}</div>
-        <button className={`add-button ${added ? 'added' : ''}`} onClick={() => onAdd(product.id)}>{added ? 'Adicionado ✓' : 'Adicionar à sacola'} <span>↗</span></button>
+        {variantsInStock.length > 0 ? <label className="size-select">Numeração<select value={variantId} onChange={(event) => setVariantId(event.target.value)} aria-label={`Numeração de ${product.name}`}>{variantsInStock.map((variant) => <option key={variant.id} value={variant.id}>{variant.size} · {variant.color} ({variant.stock})</option>)}</select></label> : <p className="demo-product">{product.variants ? 'Sem estoque disponível' : 'Disponível ao conectar o catálogo'}</p>}
+        <button className={`add-button ${added ? 'added' : ''}`} disabled={!variantId || added} onClick={() => onAdd(product.id, variantId)}>{added ? 'Adicionado ✓' : variantId ? 'Adicionar à sacola' : 'Indisponível'} <span>↗</span></button>
       </div>
     </article>
   )
 }
 
 function App() {
+  const [catalog, setCatalog] = useState(products)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState('Todos')
   const [cart, setCart] = useState([])
+  const [cartError, setCartError] = useState('')
   const [added, setAdded] = useState(null)
   const [favorites, setFavorites] = useState([])
-  const [cartOpen, setCartOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(() => window.location.search.includes('checkout=1'))
   const [subscribed, setSubscribed] = useState(false)
-  const filtered = useMemo(() => products.filter((p) => (active === 'Todos' || p.category === active) && `${p.name} ${p.brand}`.toLowerCase().includes(query.toLowerCase())), [active, query])
+  const [apiStatus, setApiStatus] = useState('loading')
+  useEffect(() => {
+    let activeRequest = true
+    fetchProducts().then((items) => { if (activeRequest && items.length) { setCatalog(items); setApiStatus('connected') } }).catch(() => { if (activeRequest) setApiStatus('offline') })
+    return () => { activeRequest = false }
+  }, [])
+  useEffect(() => { let activeRequest = true; loadCart().then((items) => { if (activeRequest) setCart(items) }).catch((cause) => { if (activeRequest) setCartError(`Sacola indisponível: ${cause.message}`) }); return () => { activeRequest = false } }, [])
+  useEffect(() => { if (window.location.search.includes('checkout=1')) window.history.replaceState({}, '', '/') }, [])
+  const filtered = useMemo(() => catalog.filter((p) => (active === 'Todos' || p.category === active) && `${p.name} ${p.brand}`.toLowerCase().includes(query.toLowerCase())), [active, catalog, query])
   const visibleProducts = (items) => items.map((product) => ({ ...product, favorite: favorites.includes(product.id), onFavorite: (id) => setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]) }))
-  const add = (id) => { setCart((items) => [...items, id]); setAdded(id); window.setTimeout(() => setAdded(null), 1300) }
+  const add = async (id, variantId) => { setAdded(id); setCartError(''); try { setCart(await addCartItem(variantId)); window.setTimeout(() => setAdded(null), 1000) } catch (cause) { setCartError(cause.message); setAdded(null) } }
+
+  if (window.location.pathname.startsWith('/admin')) return <AdminPortal />
+  if (window.location.pathname.startsWith('/account')) return <CustomerAccount />
 
   return <div className="store">
     <div className="announcement">FRETE GRÁTIS a partir de R$ 399 <span>·</span> 10% OFF na primeira compra com <b>BEMVINDO10</b></div>
     <header className="header">
       <a className="wordmark" href="#inicio" aria-label="Pedrada Calçados, início">pedrada<span>.</span><small>CALÇADOS</small></a>
       <nav className="main-nav"><a href="#mais-vendidos">Mais vendidos</a><a href="#lancamentos">Lançamentos</a><a href="#ofertas">Ofertas</a><a href="#masculinos">Masculino</a><a href="#femininos">Feminino</a></nav>
-      <div className="header-actions"><label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar tênis..." aria-label="Buscar tênis" /></label><button className="bag" aria-label={`Abrir sacola, ${cart.length} itens`} onClick={() => setCartOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><i>{cart.length}</i></button></div>
+      <div className="header-actions"><label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar tênis..." aria-label="Buscar tênis" /></label><a className="account-header-link" href={getCustomerToken() ? '/account' : '/account/login'}><UserRound size={17} /><span>{getCustomerToken() ? 'Minha conta' : 'Entrar'}</span></a><button className="bag" aria-label={`Abrir sacola, ${cart.reduce((sum, item) => sum + item.quantity, 0)} itens`} onClick={() => setCartOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><i>{cart.reduce((sum, item) => sum + item.quantity, 0)}</i></button></div>
     </header>
     <main>
       <section className="hero" id="inicio">
@@ -71,14 +93,14 @@ function App() {
         <div className="hero-vertical">PEDRADA CALÇADOS — ESTILO QUE MARCA</div>
       </section>
       <div className="benefits"><div><span>✳</span><p><b>Frete grátis</b><small>acima de R$ 399</small></p></div><div><span>↺</span><p><b>Troca fácil</b><small>até 30 dias</small></p></div><div><span>♡</span><p><b>Compra segura</b><small>seus dados protegidos</small></p></div><div><span>◉</span><p><b>10% na primeira</b><small>use BEMVINDO10</small></p></div></div>
-      <section className="catalog" id="catalogo"><div className="catalog-heading"><div><span className="eyebrow">ESCOLHA O SEU PRÓXIMO PAR</span><h2>Encontre seu passo<span>.</span></h2></div><div className="filters">{['Todos', 'Masculino', 'Feminino', 'Unissex'].map((item) => <button key={item} className={active === item ? 'active' : ''} onClick={() => setActive(item)}>{item}</button>)}</div></div>
-        {query || active !== 'Todos' ? <section className="shelf search-results"><div className="shelf-heading"><div><span className="eyebrow">{query ? 'RESULTADOS DA BUSCA' : 'SUA SELEÇÃO'}</span><h2>{query ? `Resultados para “${query}”` : active}</h2></div><span className="shelf-count">{filtered.length} modelos <span>↗</span></span></div><div className="product-grid">{visibleProducts(filtered).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div>{filtered.length === 0 && <p className="empty">Não encontramos esse modelo. Tente outra busca.</p>}</section> : sections.map((section) => <section className="shelf" id={section.id} key={section.id}><div className="shelf-heading"><div><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.subtitle}</p></div><a href="#catalogo" className="see-all">Ver coleção <span>↗</span></a></div><div className="product-grid">{visibleProducts(products.filter(section.select)).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div></section>)}
+      <section className="catalog" id="catalogo"><div className="catalog-heading"><div><span className="eyebrow">ESCOLHA O SEU PRÓXIMO PAR</span><h2>Encontre seu passo<span>.</span></h2></div><div className="filters">{['Todos', 'Masculino', 'Feminino', 'Unissex'].map((item) => <button key={item} className={active === item ? 'active' : ''} onClick={() => setActive(item)}>{item}</button>)}</div></div>{apiStatus === 'connected' && <p className="api-status">Catálogo sincronizado com o sistema.</p>}
+        {query || active !== 'Todos' ? <section className="shelf search-results"><div className="shelf-heading"><div><span className="eyebrow">{query ? 'RESULTADOS DA BUSCA' : 'SUA SELEÇÃO'}</span><h2>{query ? `Resultados para “${query}”` : active}</h2></div><span className="shelf-count">{filtered.length} modelos <span>↗</span></span></div><div className="product-grid">{visibleProducts(filtered).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div>{filtered.length === 0 && <p className="empty">Não encontramos esse modelo. Tente outra busca.</p>}</section> : sections.map((section) => <section className="shelf" id={section.id} key={section.id}><div className="shelf-heading"><div><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.subtitle}</p></div><a href="#catalogo" className="see-all">Ver coleção <span>↗</span></a></div><div className="product-grid">{visibleProducts(catalog.filter(section.select)).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div></section>)}
       </section>
       <section className="editorial"><div className="editorial-photo"><img src="https://images.unsplash.com/photo-1520256862855-398228c41684?auto=format&fit=crop&w=1100&q=85" alt="Pessoa em movimento ao ar livre" /></div><div className="editorial-copy"><span className="eyebrow light">MOVIMENTO É DE DENTRO</span><h2>O mundo é<br />o seu caminho.</h2><p>O melhor destino é aquele que você escolhe. Encontre o par que acompanha a sua jornada, no seu tempo e do seu jeito.</p><a href="#catalogo" className="hero-cta">Encontre seu par <span>↗</span></a><span className="editorial-mark">p.</span></div></section>
       <section className="newsletter"><span className="eyebrow">NOVIDADES PEDRADA</span><h2>Novidades que dão vontade de sair.</h2><p>Lançamentos, ofertas e um mimo na primeira compra.</p><form onSubmit={(e) => { e.preventDefault(); setSubscribed(true); e.currentTarget.reset() }}><input type="email" required placeholder="Seu melhor e-mail" aria-label="Seu melhor e-mail" /><button>Quero receber <span>↗</span></button></form>{subscribed && <p className="success-message" role="status">E-mail cadastrado! Você receberá nossas novidades.</p>}</section>
     </main>
     <footer className="footer"><a className="wordmark" href="#inicio">pedrada<span>.</span><small>CALÇADOS</small></a><p>Estilo que marca. <span>© {new Date().getFullYear()} pedrada.calcados</span></p><div><a href="https://www.instagram.com/pedrada.calcados/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#catalogo">Ajuda ↗</a></div></footer>
-    {cartOpen && <div className="overlay" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setCartOpen(false) }}><aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Sua sacola"><div className="cart-heading"><div><span className="eyebrow">PEDRADA CALÇADOS</span><h2>Sua sacola <span>({cart.length})</span></h2></div><button onClick={() => setCartOpen(false)} aria-label="Fechar sacola">×</button></div>{cart.length ? <><div className="cart-items">{cart.map((id, index) => { const product = products.find((item) => item.id === id); return <div className="cart-item" key={`${id}-${index}`}><img src={`https://images.unsplash.com/${product.image}?auto=format&fit=crop&w=180&q=75`} alt="" /><div><b>{product.brand}</b><span>{product.name}</span><strong>{money(product.price)}</strong></div><button aria-label={`Remover ${product.name}`} onClick={() => setCart((items) => items.filter((_, itemIndex) => itemIndex !== index))}>×</button></div> })}</div><div className="cart-total"><span>Subtotal</span><b>{money(cart.reduce((sum, id) => sum + products.find((p) => p.id === id).price, 0))}</b><small>Frete calculado na próxima etapa.</small><button onClick={() => alert('Para finalizar seu pedido, fale com a Pedrada Calçados pelo Instagram.')}>Continuar compra <span>↗</span></button></div></> : <div className="cart-empty"><span>♧</span><p>Sua sacola está esperando<br />pelo seu próximo par.</p><button onClick={() => setCartOpen(false)}>Continuar comprando</button></div>}</aside></div>}
+    {cartOpen && <CartDrawer cart={cart} setCart={setCart} cartError={cartError} onClose={() => setCartOpen(false)} />}
   </div>
 }
 

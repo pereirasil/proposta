@@ -1,0 +1,2 @@
+ALTER TABLE "ProductVariant" ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT true;
+ALTER TYPE "PaymentStatus" ADD VALUE 'CANCELLED';
