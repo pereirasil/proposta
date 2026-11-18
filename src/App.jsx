@@ -62,7 +62,7 @@ function App() {
     <header className="header">
       <a className="wordmark" href="#inicio" aria-label="Pedrada Calçados, início">pedrada<span>.</span><small>CALÇADOS</small></a>
       <nav className="main-nav"><a href="#mais-vendidos">Mais vendidos</a><a href="#lancamentos">Lançamentos</a><a href="#ofertas">Ofertas</a><a href="#masculinos">Masculino</a><a href="#femininos">Feminino</a></nav>
-      <div className="header-actions"><label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar tênis..." aria-label="Buscar tênis" /></label><button className="bag" aria-label={`Abrir sacola, ${cart.length} itens`} onClick={() => setCartOpen(true)}>♧ <i>{cart.length}</i></button></div>
+      <div className="header-actions"><label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar tênis..." aria-label="Buscar tênis" /></label><button className="bag" aria-label={`Abrir sacola, ${cart.length} itens`} onClick={() => setCartOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><i>{cart.length}</i></button></div>
     </header>
     <main>
       <section className="hero" id="inicio">
