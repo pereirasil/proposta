@@ -1,84 +1,96 @@
 import { useMemo, useState } from 'react'
+import { ArrowRight, ArrowUpRight, Heart, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import './App.css'
 
+const storeName = 'PR Multimarcas'
+const instagramUrl = 'https://www.instagram.com/prmultimarcasss_/'
+const whatsappNumber = '5521965599792'
+const whatsappLink = (message) => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
+
+const categoryTiles = [
+  { label: 'Tênis', image: 'photo-1542291026-7eec264c27ff', description: 'Do casual ao esportivo' },
+  { label: 'Sapatos', image: 'photo-1495555961986-6d4c1ecb7be3', description: 'Clássicos com personalidade' },
+  { label: 'Blusas', image: 'photo-1556821840-3a63f95609a7', description: 'Conforto para todo dia' },
+]
+
 const products = [
-  { id: 1, name: 'Air Max Pulse', brand: 'Nike', price: 899.9, oldPrice: 1099.9, category: 'Masculino', badge: 'MAIS VENDIDO', color: 'sand', image: 'photo-1542291026-7eec264c27ff' },
-  { id: 2, name: 'Ultraboost Light', brand: 'Adidas', price: 999.9, category: 'Feminino', badge: 'LANÇAMENTO', color: 'lilac', image: 'photo-1608231387042-66d1773070a5' },
-  { id: 3, name: '574 Core', brand: 'New Balance', price: 649.9, oldPrice: 799.9, category: 'Masculino', badge: '−19%', color: 'blue', image: 'photo-1539185441755-769473a23570' },
-  { id: 4, name: 'Chuck 70 Vintage', brand: 'Converse', price: 429.9, category: 'Unissex', badge: '', color: 'pink', image: 'photo-1495555961986-6d4c1ecb7be3' },
-  { id: 5, name: 'Gel-Kayano 30', brand: 'ASICS', price: 899.9, oldPrice: 1049.9, category: 'Feminino', badge: '−14%', color: 'mint', image: 'photo-1552346154-21d32810aba3' },
-  { id: 6, name: 'Classic Leather', brand: 'Reebok', price: 499.9, category: 'Masculino', badge: 'CLÁSSICO', color: 'cream', image: 'photo-1549298916-b41d501d3772' },
-  { id: 7, name: 'Forum Low', brand: 'Adidas', price: 699.9, oldPrice: 799.9, category: 'Feminino', badge: 'OFERTA', color: 'orange', image: 'photo-1600185365483-26d7a4cc7519' },
-  { id: 8, name: 'Air Force 1 ’07', brand: 'Nike', price: 799.9, category: 'Masculino', badge: 'FAVORITO', color: 'lavender', image: 'photo-1600269452121-4f2416e55c28' },
-  { id: 9, name: '574 Platform', brand: 'New Balance', price: 729.9, category: 'Feminino', badge: 'NOVO', color: 'rose', image: 'photo-1551107696-a4b0c5a0d9a2' },
-  { id: 10, name: 'Old Skool', brand: 'Vans', price: 449.9, oldPrice: 529.9, category: 'Unissex', badge: '−15%', color: 'sky', image: 'photo-1525966222134-fcfa99b8ae77' },
-  { id: 11, name: 'Cloud 5', brand: 'On', price: 899.9, category: 'Masculino', badge: 'LANÇAMENTO', color: 'green', image: 'photo-1460353581641-37baddab0fa2' },
-  { id: 12, name: 'Dunk Low Next Nature', brand: 'Nike', price: 749.9, category: 'Feminino', badge: 'EDIÇÃO ESPECIAL', color: 'yellow', image: 'photo-1556048219-bb6978360b84' },
+  { id: 1, name: 'Tênis Casual Street', category: 'Tênis', colors: ['#171717', '#f1eee8', '#77776e'], image: 'photo-1525966222134-fcfa99b8ae77', badge: 'MAIS PEDIDO' },
+  { id: 2, name: 'Tênis Esportivo Runner', category: 'Tênis', colors: ['#1e2823', '#e6e1d8', '#252525'], image: 'photo-1542291026-7eec264c27ff', badge: 'DESTAQUE' },
+  { id: 3, name: 'Tênis Lifestyle', category: 'Tênis', colors: ['#f4f0e8', '#252525', '#a79b8c'], image: 'photo-1495555961986-6d4c1ecb7be3', badge: '' },
+  { id: 4, name: 'Tênis Street', category: 'Tênis', colors: ['#d5d0c6', '#202020'], image: 'photo-1552346154-21d32810aba3', badge: '' },
+  { id: 5, name: 'Tênis Clássico', category: 'Tênis', colors: ['#171717', '#f1eee8'], image: 'photo-1525966222134-fcfa99b8ae77', badge: '' },
+  { id: 6, name: 'Tênis Urban', category: 'Tênis', colors: ['#77776e', '#252525'], image: 'photo-1542291026-7eec264c27ff', badge: 'NOVO' },
+  { id: 7, name: 'Tênis Performance', category: 'Tênis', colors: ['#252525', '#e6e1d8'], image: 'photo-1552346154-21d32810aba3', badge: '' },
+  { id: 8, name: 'Tênis Casual Low', category: 'Tênis', colors: ['#f4f0e8', '#171717'], image: 'photo-1495555961986-6d4c1ecb7be3', badge: '' },
+  { id: 9, name: 'Tênis Daily', category: 'Tênis', colors: ['#202020', '#d5d0c6'], image: 'photo-1525966222134-fcfa99b8ae77', badge: '' },
+  { id: 10, name: 'Tênis Sport', category: 'Tênis', colors: ['#252525', '#f1eee8'], image: 'photo-1542291026-7eec264c27ff', badge: '' },
+  { id: 11, name: 'Sapato Casual', category: 'Sapatos', colors: ['#171717', '#6b4b37'], image: 'photo-1531310197839-ccf54634509e', badge: 'CLÁSSICO' },
+  { id: 12, name: 'Sapato Social', category: 'Sapatos', colors: ['#171717', '#654832'], image: 'photo-1614252235316-8c857d38b5f4', badge: '' },
+  { id: 13, name: 'Mocassim Urbano', category: 'Sapatos', colors: ['#34271f', '#171717'], image: 'photo-1531310197839-ccf54634509e', badge: '' },
+  { id: 14, name: 'Sapato Derby', category: 'Sapatos', colors: ['#171717', '#775b45'], image: 'photo-1531310197839-ccf54634509e', badge: '' },
+  { id: 15, name: 'Sapato Oxford', category: 'Sapatos', colors: ['#171717', '#654832'], image: 'photo-1614252235316-8c857d38b5f4', badge: 'ELEGANTE' },
+  { id: 16, name: 'Loafer Casual', category: 'Sapatos', colors: ['#34271f', '#171717'], image: 'photo-1531310197839-ccf54634509e', badge: '' },
+  { id: 17, name: 'Sapato Couro', category: 'Sapatos', colors: ['#171717', '#775b45'], image: 'photo-1531310197839-ccf54634509e', badge: '' },
+  { id: 18, name: 'Sapato Daily', category: 'Sapatos', colors: ['#252525', '#6b4b37'], image: 'photo-1614252235316-8c857d38b5f4', badge: '' },
+  { id: 19, name: 'Mocassim Clássico', category: 'Sapatos', colors: ['#34271f', '#171717'], image: 'photo-1531310197839-ccf54634509e', badge: '' },
+  { id: 20, name: 'Sapato Moderno', category: 'Sapatos', colors: ['#171717', '#775b45'], image: 'photo-1531310197839-ccf54634509e', badge: 'NOVO' },
+  { id: 21, name: 'Camiseta Urban', category: 'Blusas', colors: ['#d5d0c6', '#202020', '#82918a'], image: 'photo-1521572163474-6864f9cf17ab', badge: 'MAIS PEDIDA' },
+  { id: 22, name: 'Blusa Essencial', category: 'Blusas', colors: ['#f4f0e8', '#252525', '#687366'], image: 'photo-1556821840-3a63f95609a7', badge: '' },
+  { id: 23, name: 'Camisa Polo', category: 'Blusas', colors: ['#171717', '#f1eee8', '#253b30'], image: 'photo-1625910513413-5fc45e2b3c5a', badge: 'NOVIDADE' },
+  { id: 24, name: 'Moletom Casual', category: 'Blusas', colors: ['#1e2823', '#e6e1d8', '#252525'], image: 'photo-1578681994506-b8f463449011', badge: '' },
+  { id: 25, name: 'Camiseta Básica', category: 'Blusas', colors: ['#171717', '#f1eee8', '#77776e'], image: 'photo-1521572163474-6864f9cf17ab', badge: '' },
+  { id: 26, name: 'Blusa Street', category: 'Blusas', colors: ['#202020', '#d5d0c6'], image: 'photo-1556821840-3a63f95609a7', badge: '' },
+  { id: 27, name: 'Polo Clássica', category: 'Blusas', colors: ['#253b30', '#171717'], image: 'photo-1625910513413-5fc45e2b3c5a', badge: '' },
+  { id: 28, name: 'Moletom Urban', category: 'Blusas', colors: ['#252525', '#e6e1d8'], image: 'photo-1578681994506-b8f463449011', badge: 'CONFORTO' },
+  { id: 29, name: 'Camiseta Oversized', category: 'Blusas', colors: ['#171717', '#82918a'], image: 'photo-1521572163474-6864f9cf17ab', badge: '' },
+  { id: 30, name: 'Blusa Casual', category: 'Blusas', colors: ['#687366', '#f4f0e8'], image: 'photo-1556821840-3a63f95609a7', badge: '' },
 ]
+const photo = (id, width = 900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
 
-const sections = [
-  { id: 'mais-vendidos', title: 'Os queridinhos da vez', eyebrow: 'SUCESSO DE VENDAS', subtitle: 'Os pares que todo mundo está usando.', select: (p) => [1, 3, 5, 8, 10, 11].includes(p.id) },
-  { id: 'lancamentos', title: 'Novos no pedaço', eyebrow: 'ACABARAM DE CHEGAR', subtitle: 'Novidades para dar um passo à frente.', select: (p) => [2, 4, 9, 11, 12, 7].includes(p.id) },
-  { id: 'ofertas', title: 'Seu próximo par, com desconto', eyebrow: 'OPORTUNIDADE BOA', subtitle: 'Preços especiais por tempo limitado.', select: (p) => p.oldPrice },
-  { id: 'masculinos', title: 'Feitos para ir mais longe', eyebrow: 'MASCULINO', subtitle: 'Conforto e atitude em cada passo.', select: (p) => p.category === 'Masculino' },
-  { id: 'femininos', title: 'Seu ritmo, suas regras', eyebrow: 'FEMININO', subtitle: 'Modelos para acompanhar cada versão sua.', select: (p) => p.category === 'Feminino' },
-]
-
-const money = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-
-function ProductCard({ product, onAdd, added }) {
-  return (
-    <article className="product-card">
-      <div className={`product-image ${product.color}`}>
-        <img src={`https://images.unsplash.com/${product.image}?auto=format&fit=crop&w=720&q=85`} alt={`${product.name} da ${product.brand}`} loading="lazy" />
-        {product.badge && <span className="badge">{product.badge}</span>}
-        <button className="favorite" aria-label={`Favoritar ${product.name}`} aria-pressed={product.favorite} onClick={() => product.onFavorite(product.id)}>{product.favorite ? '♥' : '♡'}</button>
-      </div>
-      <div className="product-info">
-        <span className="brand">{product.brand}</span>
-        <h3>{product.name}</h3>
-        <p className="category-label">Tênis · {product.category}</p>
-        <div className="price-row"><strong>{money(product.price)}</strong>{product.oldPrice && <del>{money(product.oldPrice)}</del>}</div>
-        <button className={`add-button ${added ? 'added' : ''}`} onClick={() => onAdd(product.id)}>{added ? 'Adicionado ✓' : 'Adicionar à sacola'} <span>↗</span></button>
-      </div>
-    </article>
-  )
+function ProductCard({ product, favorite, onFavorite, onSelect }) {
+  return <article className="product-card">
+    <button className="product-image" onClick={() => onSelect(product)} aria-label={`Ver ${product.name}`}><img src={photo(product.image, 700)} alt={`${product.name} PR Multimarcas`} loading="lazy" />{product.badge && <span className="badge">{product.badge}</span>}<span className="quick-view">Conhecer produto <ArrowUpRight size={15} /></span></button>
+    <div className="product-info"><div className="product-title"><div><span className="brand">PR MULTIMARCAS</span><h3>{product.name}</h3></div><button className={`favorite ${favorite ? 'selected' : ''}`} onClick={() => onFavorite(product.id)} aria-label={`Favoritar ${product.name}`} aria-pressed={favorite}><Heart size={17} fill={favorite ? 'currentColor' : 'none'} /></button></div><p className="product-category">{product.category}</p><div className="product-bottom"><div className="swatches" aria-label={`${product.colors.length} cores disponíveis`}>{product.colors.map((color) => <span key={color} style={{ '--swatch': color }} />)}<small>+ cores</small></div><button className="product-open" onClick={() => onSelect(product)}>Ver opções <ArrowRight size={14} /></button></div><p className="price-note">Consulte opções e valores</p></div>
+  </article>
 }
 
 function App() {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState('Todos')
-  const [cart, setCart] = useState([])
-  const [added, setAdded] = useState(null)
   const [favorites, setFavorites] = useState([])
+  const [cart, setCart] = useState([])
   const [cartOpen, setCartOpen] = useState(false)
-  const [subscribed, setSubscribed] = useState(false)
-  const filtered = useMemo(() => products.filter((p) => (active === 'Todos' || p.category === active) && `${p.name} ${p.brand}`.toLowerCase().includes(query.toLowerCase())), [active, query])
-  const visibleProducts = (items) => items.map((product) => ({ ...product, favorite: favorites.includes(product.id), onFavorite: (id) => setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]) }))
-  const add = (id) => { setCart((items) => [...items, id]); setAdded(id); window.setTimeout(() => setAdded(null), 1300) }
+  const [selected, setSelected] = useState(null)
+  const [selectedColor, setSelectedColor] = useState('')
+  const [selectedSize, setSelectedSize] = useState('')
+  const [notice, setNotice] = useState('')
+  const sizeOptions = selected?.category === 'Tênis' || selected?.category === 'Sapatos'
+    ? ['34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44']
+    : ['P', 'M', 'G', 'GG']
+  const filtered = useMemo(() => products.filter((product) => (['Todos', 'Favoritos'].includes(active) || product.category === active) && `${product.name} ${product.category}`.toLowerCase().includes(query.toLowerCase())), [active, query])
+  const addToCart = () => {
+    if (!selectedColor || !selectedSize) { setNotice('Escolha uma cor e um tamanho para continuar.'); return }
+    setCart((items) => [...items, { ...selected, color: selectedColor, size: selectedSize }])
+    setNotice('Produto adicionado à sacola.')
+    setSelected(null); setSelectedColor(''); setSelectedSize('')
+  }
+  const categories = ['Todos', 'Tênis', 'Sapatos', 'Blusas']
+  const checkoutMessage = `Olá! Quero comprar:\n${cart.map((item) => `• ${item.name} — cor ${item.color}, tamanho ${item.size}`).join('\n')}\n\nVim pelo site da ${storeName}.`
 
   return <div className="store">
-    <div className="announcement">FRETE GRÁTIS a partir de R$ 399 <span>·</span> 10% OFF na primeira compra com <b>BEMVINDO10</b></div>
-    <header className="header">
-      <a className="wordmark" href="#inicio" aria-label="Pedrada Calçados, início">pedrada<span>.</span><small>CALÇADOS</small></a>
-      <nav className="main-nav"><a href="#mais-vendidos">Mais vendidos</a><a href="#lancamentos">Lançamentos</a><a href="#ofertas">Ofertas</a><a href="#masculinos">Masculino</a><a href="#femininos">Feminino</a></nav>
-      <div className="header-actions"><label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar tênis..." aria-label="Buscar tênis" /></label><button className="bag" aria-label={`Abrir sacola, ${cart.length} itens`} onClick={() => setCartOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><i>{cart.length}</i></button></div>
-    </header>
+    <div className="announcement"><span>PR MULTIMARCAS</span><i /> A Black Friday começou <a href="#black-friday">Descubra a campanha <ArrowUpRight size={12} /></a></div>
+    <header className="header"><button className="mobile-menu" aria-label="Menu"><Menu size={20} /></button><a className="wordmark" href="#inicio" aria-label="PR Multimarcas, início">PR<span>MULTIMARCAS</span></a><nav className="main-nav"><a href="#produtos">Tênis</a><a href="#produtos">Sapatos</a><a href="#produtos">Blusas</a><a href="#sobre">A loja</a></nav><div className="header-actions"><label className="search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar produtos" aria-label="Buscar produtos" /></label><a className="icon-action" href="#contato" aria-label="Contato"><UserRound size={19} /></a><button className="icon-action favorite-nav" onClick={() => setActive('Favoritos')} aria-label="Ver favoritos"><Heart size={19} /></button><button className="bag" onClick={() => setCartOpen(true)} aria-label={`Abrir sacola, ${cart.length} itens`}><ShoppingBag size={19} /><i>{cart.length}</i></button></div></header>
     <main>
-      <section className="hero" id="inicio">
-        <div className="hero-copy"><span className="eyebrow light">PEDRADA CALÇADOS · ESTILO QUE MARCA</span><h1>Seu estilo<br />é pedrada<span>.</span></h1><p>Os pares certos para chegar com presença. Encontre o seu próximo favorito.</p><a className="hero-cta" href="#lancamentos">Ver lançamentos <span>↗</span></a><div className="hero-note"><span className="note-line" /> Escolha seu próximo par</div></div>
-        <div className="hero-art"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1400&q=90" alt="Tênis vermelho esportivo em destaque" /><span className="hero-sticker">SEU<br />RITMO<br /><b>↗</b></span><span className="hero-index">01 / 04</span></div>
-        <div className="hero-vertical">PEDRADA CALÇADOS — ESTILO QUE MARCA</div>
-      </section>
-      <div className="benefits"><div><span>✳</span><p><b>Frete grátis</b><small>acima de R$ 399</small></p></div><div><span>↺</span><p><b>Troca fácil</b><small>até 30 dias</small></p></div><div><span>♡</span><p><b>Compra segura</b><small>seus dados protegidos</small></p></div><div><span>◉</span><p><b>10% na primeira</b><small>use BEMVINDO10</small></p></div></div>
-      <section className="catalog" id="catalogo"><div className="catalog-heading"><div><span className="eyebrow">ESCOLHA O SEU PRÓXIMO PAR</span><h2>Encontre seu passo<span>.</span></h2></div><div className="filters">{['Todos', 'Masculino', 'Feminino', 'Unissex'].map((item) => <button key={item} className={active === item ? 'active' : ''} onClick={() => setActive(item)}>{item}</button>)}</div></div>
-        {query || active !== 'Todos' ? <section className="shelf search-results"><div className="shelf-heading"><div><span className="eyebrow">{query ? 'RESULTADOS DA BUSCA' : 'SUA SELEÇÃO'}</span><h2>{query ? `Resultados para “${query}”` : active}</h2></div><span className="shelf-count">{filtered.length} modelos <span>↗</span></span></div><div className="product-grid">{visibleProducts(filtered).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div>{filtered.length === 0 && <p className="empty">Não encontramos esse modelo. Tente outra busca.</p>}</section> : sections.map((section) => <section className="shelf" id={section.id} key={section.id}><div className="shelf-heading"><div><span className="eyebrow">{section.eyebrow}</span><h2>{section.title}</h2><p>{section.subtitle}</p></div><a href="#catalogo" className="see-all">Ver coleção <span>↗</span></a></div><div className="product-grid">{visibleProducts(products.filter(section.select)).map((p) => <ProductCard key={p.id} product={p} onAdd={add} added={added === p.id} />)}</div></section>)}
-      </section>
-      <section className="editorial"><div className="editorial-photo"><img src="https://images.unsplash.com/photo-1520256862855-398228c41684?auto=format&fit=crop&w=1100&q=85" alt="Pessoa em movimento ao ar livre" /></div><div className="editorial-copy"><span className="eyebrow light">MOVIMENTO É DE DENTRO</span><h2>O mundo é<br />o seu caminho.</h2><p>O melhor destino é aquele que você escolhe. Encontre o par que acompanha a sua jornada, no seu tempo e do seu jeito.</p><a href="#catalogo" className="hero-cta">Encontre seu par <span>↗</span></a><span className="editorial-mark">p.</span></div></section>
-      <section className="newsletter"><span className="eyebrow">NOVIDADES PEDRADA</span><h2>Novidades que dão vontade de sair.</h2><p>Lançamentos, ofertas e um mimo na primeira compra.</p><form onSubmit={(e) => { e.preventDefault(); setSubscribed(true); e.currentTarget.reset() }}><input type="email" required placeholder="Seu melhor e-mail" aria-label="Seu melhor e-mail" /><button>Quero receber <span>↗</span></button></form>{subscribed && <p className="success-message" role="status">E-mail cadastrado! Você receberá nossas novidades.</p>}</section>
+      <section className="black-friday" id="black-friday"><div className="bf-spark" aria-hidden="true">✳</div><div className="bf-copy"><span className="bf-kicker">PR MULTIMARCAS APRESENTA</span><h1>COMEÇOU A<br /><strong>BLACK FRIDAY</strong></h1><p>Seu próximo look favorito está a um clique.</p><a href="#produtos" onClick={() => setActive('Todos')}>GARANTA SEUS FAVORITOS <ArrowRight size={16} /></a></div><div className="bf-stamp"><span>OFERTAS</span><b>POR<br />TEMPO<br />LIMITADO</b></div><div className="bf-foot">TÊNIS <i /> SAPATOS <i /> BLUSAS <i /> ESCOLHA O SEU</div></section>
+      <section className="category-strip" aria-label="Comprar por categoria"><div className="category-intro"><span className="eyebrow">ESCOLHA SUA CATEGORIA</span><h2>Seu estilo começa<br />pela escolha certa.</h2></div>{categoryTiles.map((category) => <button key={category.label} className="category-tile" onClick={() => { setActive(category.label); document.getElementById('produtos')?.scrollIntoView({ behavior: 'smooth' }) }}><img src={photo(category.image, 560)} alt="" /><span className="category-tile-shade" /><span className="category-tile-copy"><b>{category.label}</b><small>{category.description}</small><i>Explorar <ArrowUpRight size={14} /></i></span></button>)}</section>
+      <section className="catalog" id="produtos"><div className="section-heading"><div><span className="eyebrow">CURADORIA PR</span><h2>Escolhas que falam<br className="mobile-break" /> por você<span>.</span></h2><p>Peças selecionadas para atualizar seu visual.</p></div><a className="text-link" href={instagramUrl} target="_blank" rel="noreferrer">Ver novidades <ArrowUpRight size={15} /></a></div><nav className="filters" aria-label="Filtrar produtos">{categories.map((category) => <button key={category} className={active === category ? 'active' : ''} onClick={() => setActive(category)}>{category}</button>)}<button className={active === 'Favoritos' ? 'active' : ''} onClick={() => setActive('Favoritos')}>Favoritos</button></nav><div className="product-grid">{(active === 'Favoritos' ? filtered.filter((product) => favorites.includes(product.id)) : filtered).map((product) => <ProductCard key={product.id} product={product} favorite={favorites.includes(product.id)} onFavorite={(id) => setFavorites((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id])} onSelect={(item) => { setSelected(item); setSelectedColor(''); setSelectedSize(''); setNotice('') }} />)}</div>{(active === 'Favoritos' ? favorites.length === 0 : filtered.length === 0) && <p className="empty">{active === 'Favoritos' ? 'Seus favoritos aparecerão aqui.' : 'Não encontramos resultados. Experimente outra busca.'}</p>}</section>
+      <section className="instagram"><div className="instagram-heading"><div><span className="eyebrow">ACOMPANHE AS NOVIDADES</span><h2>PR Multimarcas<br />no Instagram<span>.</span></h2></div><a className="text-link" href={instagramUrl} target="_blank" rel="noreferrer">@prmultimarcasss_ <ArrowUpRight size={15} /></a></div><div className="instagram-grid">{['photo-1525966222134-fcfa99b8ae77','photo-1542291026-7eec264c27ff','photo-1521572163474-6864f9cf17ab','photo-1552346154-21d32810aba3'].map((image, index) => <a key={image} href={instagramUrl} target="_blank" rel="noreferrer" aria-label={`Ver PR Multimarcas no Instagram, imagem ${index + 1}`}><img src={photo(image, 480)} alt="Produtos de moda da PR Multimarcas" loading="lazy" /><span><ArrowUpRight size={17} /></span></a>)}</div></section>
+      <section className="contact-band" id="contato"><div><span className="eyebrow light">TEM UMA DÚVIDA?</span><h2>Vamos conversar.</h2><p>Fale com a equipe PR Multimarcas sobre produtos, tamanhos e entrega.</p></div><a href={whatsappLink('Olá! Vim pelo site da PR Multimarcas e gostaria de atendimento.')} target="_blank" rel="noreferrer">Atendimento pelo WhatsApp <ArrowUpRight size={16} /></a></section>
     </main>
-    <footer className="footer"><a className="wordmark" href="#inicio">pedrada<span>.</span><small>CALÇADOS</small></a><p>Estilo que marca. <span>© {new Date().getFullYear()} pedrada.calcados</span></p><div><a href="https://www.instagram.com/pedrada.calcados/" target="_blank" rel="noreferrer">Instagram ↗</a><a href="#catalogo">Ajuda ↗</a></div></footer>
-    {cartOpen && <div className="overlay" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setCartOpen(false) }}><aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Sua sacola"><div className="cart-heading"><div><span className="eyebrow">PEDRADA CALÇADOS</span><h2>Sua sacola <span>({cart.length})</span></h2></div><button onClick={() => setCartOpen(false)} aria-label="Fechar sacola">×</button></div>{cart.length ? <><div className="cart-items">{cart.map((id, index) => { const product = products.find((item) => item.id === id); return <div className="cart-item" key={`${id}-${index}`}><img src={`https://images.unsplash.com/${product.image}?auto=format&fit=crop&w=180&q=75`} alt="" /><div><b>{product.brand}</b><span>{product.name}</span><strong>{money(product.price)}</strong></div><button aria-label={`Remover ${product.name}`} onClick={() => setCart((items) => items.filter((_, itemIndex) => itemIndex !== index))}>×</button></div> })}</div><div className="cart-total"><span>Subtotal</span><b>{money(cart.reduce((sum, id) => sum + products.find((p) => p.id === id).price, 0))}</b><small>Frete calculado na próxima etapa.</small><button onClick={() => alert('Para finalizar seu pedido, fale com a Pedrada Calçados pelo Instagram.')}>Continuar compra <span>↗</span></button></div></> : <div className="cart-empty"><span>♧</span><p>Sua sacola está esperando<br />pelo seu próximo par.</p><button onClick={() => setCartOpen(false)}>Continuar comprando</button></div>}</aside></div>}
+    <footer className="footer"><div className="footer-main"><div className="footer-brand"><a className="wordmark footer-logo" href="#inicio">PR<span>MULTIMARCAS</span></a><p>Seu estilo, do seu jeito.</p><a className="social-link" href={instagramUrl} target="_blank" rel="noreferrer">Instagram <ArrowUpRight size={14} /></a></div><div className="footer-column"><b>EXPLORE</b><a href="#produtos">Tênis</a><a href="#produtos">Sapatos</a><a href="#produtos">Blusas</a></div><div className="footer-column"><b>ATENDIMENTO</b><a href={whatsappLink('Olá! Vim pelo site da PR Multimarcas e gostaria de atendimento.')} target="_blank" rel="noreferrer">WhatsApp</a><a href={instagramUrl} target="_blank" rel="noreferrer">Instagram</a><a href="#contato">Fale conosco</a></div><div className="footer-column"><b>INFORMAÇÕES</b><a href="#contato">Entrega</a><a href="#contato">Trocas e devoluções</a><span>Consulte disponibilidade pelo WhatsApp.</span></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} PR Multimarcas</span><span>Moda e estilo para você.</span></div></footer>
+    {notice && <div className="toast" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Fechar aviso"><X size={15} /></button></div>}
+    {cartOpen && <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setCartOpen(false) }}><aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Sua sacola"><div className="cart-heading"><div><span className="eyebrow">PR MULTIMARCAS</span><h2>Sua sacola <span>({cart.length})</span></h2></div><button onClick={() => setCartOpen(false)} aria-label="Fechar sacola"><X size={20} /></button></div>{cart.length ? <><div className="cart-items">{cart.map((item, index) => <div className="cart-item" key={`${item.id}-${index}`}><img src={photo(item.image, 180)} alt="" /><div><b>{item.name}</b><span>{item.color} · tam. {item.size}</span><small>Valor a confirmar</small></div><button aria-label={`Remover ${item.name}`} onClick={() => setCart((items) => items.filter((_, itemIndex) => itemIndex !== index))}><X size={16} /></button></div>)}</div><div className="cart-total"><span>Subtotal</span><b>A confirmar</b><small>Consulte valores, disponibilidade e envio com nossa equipe.</small><a href={whatsappLink(checkoutMessage)} target="_blank" rel="noreferrer">Comprar pelo WhatsApp <ArrowUpRight size={15} /></a></div></> : <div className="cart-empty"><ShoppingBag size={30} /><p>Sua sacola está vazia.<br />Encontre seus próximos favoritos.</p><button onClick={() => setCartOpen(false)}>Continuar explorando</button></div>}</aside></div>}
+    {selected && <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null) }}><section className="product-modal" role="dialog" aria-modal="true" aria-label={`Detalhes de ${selected.name}`}><button className="modal-close" onClick={() => setSelected(null)} aria-label="Fechar"><X size={19} /></button><div className="modal-product-visual" style={{ '--selected-color': selectedColor || '#ffffff' }}><img src={photo(selected.image, 900)} alt={`${selected.name}${selectedColor ? ` na cor selecionada ${selectedColor}` : ''}`} /><span className="color-preview" aria-hidden="true" /></div><div className="modal-info"><span className="eyebrow">PR MULTIMARCAS · {selected.category.toUpperCase()}</span><h2>{selected.name}</h2><p>Escolha suas opções e consulte disponibilidade e valores com nossa equipe.</p><fieldset><legend>Cor</legend><div className="modal-swatches">{selected.colors.map((color) => <button key={color} className={selectedColor === color ? 'chosen' : ''} onClick={() => setSelectedColor(color)} style={{ '--swatch': color }} aria-label={`Selecionar cor ${color}`} aria-pressed={selectedColor === color} />)}</div></fieldset>{selectedColor && <p className="selected-color-label">Cor selecionada <span style={{ '--swatch': selectedColor }} /> {selectedColor.toUpperCase()}</p>}<fieldset><legend>{selected.category === 'Tênis' || selected.category === 'Sapatos' ? 'Numeração' : 'Tamanho'}</legend><div className={`sizes ${sizeOptions.length > 4 ? 'numeric-sizes' : ''}`}>{sizeOptions.map((size) => <button key={size} className={selectedSize === size ? 'chosen' : ''} onClick={() => setSelectedSize(size)}>{size}</button>)}</div></fieldset><button className="modal-add" onClick={addToCart}>Adicionar à sacola <ArrowUpRight size={16} /></button><a className="modal-contact" href={whatsappLink(`Olá! Quero consultar disponibilidade e preço de ${selected.name} (${selected.category}).`)} target="_blank" rel="noreferrer">Consultar disponibilidade e preço pelo WhatsApp</a></div></section></div>}
   </div>
 }
 
